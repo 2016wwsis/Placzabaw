@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
+import android.graphics.drawable.Icon;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
@@ -13,7 +15,6 @@ import android.net.ConnectivityManager;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -33,28 +34,21 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 
-import com.google.android.gms.common.ConnectionResult;
-import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapFragment;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import java.util.List;
+import java.util.Random;
 
+@SuppressWarnings("MismatchedReadAndWriteOfArray")
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LocationListener {
 
@@ -98,9 +92,30 @@ public class MainActivity extends AppCompatActivity
             locLat = loc.getLatitude();
             locLong = loc.getLongitude();
         }
-
-
     }
+
+    private void getPlaygroundFromDatabase() {
+
+        //tu bedzie kod do czytania danych
+        playground[] playgroundList = new playground[5];
+        Random random = new Random();
+
+        for(int i=0;i<playgroundList.length;i++)
+             playgroundList[i]=new playground();
+
+
+       for(int i=0; i<=4; i++) {
+           playgroundList[i].name = "Plac nr " + i+1;
+           playgroundList[i].description = "Opis placu nr " + i+1;
+           playgroundList[i].rate = i+1;
+           playgroundList[i].playgroundLat = 51.39758437 + (random.nextDouble()/100);
+           playgroundList[i].playgroundLong = 17.66665765 + (random.nextDouble()/100);
+           addNewPlayground(new LatLng(playgroundList[i].playgroundLat, playgroundList[i].playgroundLong), playgroundList[i].name, playgroundList[i].description, playgroundList[i].rate);
+
+       }
+    }
+
+
 
 
     @Override
@@ -124,6 +139,7 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                addNewPlayground(new LatLng(locLat, locLong),"Twój nowy plac zabaw","A tu będzie krótki opis placu zabaw", 1); //
                 addNewPlayground();
                 DatabaseReference myRef = database.getReference("message");
                 testValue += 1;
@@ -217,10 +233,31 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    private void addNewPlayground() {
+    private void addNewPlayground(LatLng latlang, String playgroundTitle, String playgroundDescription, Integer playgroundRate) {
         MarkerOptions markers = new MarkerOptions().position(
-            new LatLng(locLat, locLong)).title("Twój nowy plac zabaw").snippet("A tu będzie krótki opis placu zabaw");
-            markers.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE));
+            latlang).title(String.format(playgroundTitle + "  " + locLat + "  " + locLong)).snippet(playgroundDescription);
+
+
+        switch (playgroundRate) {
+            case 1:
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_border_red_600_36dp));
+                break;
+            case 2:
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_half_orange_500_36dp));
+                break;
+            case 3:
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_half_yellow_500_36dp));
+                break;
+            case 4:
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_half_light_green_300_36dp));
+                break;
+            case 5:
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_light_green_500_36dp));
+                break;
+            default:
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_menu_camera));
+                break;
+        }
 
         mGoogleMap.addMarker(markers);
 
@@ -376,12 +413,10 @@ public class MainActivity extends AppCompatActivity
     }
 
     @Override
-    public void onPause() {
+    protected void onPause(){
         super.onPause();
-
+        lm.removeUpdates(this);
     }
-
-
 
     @Override
     public void onLocationChanged(Location location) {
@@ -393,6 +428,7 @@ public class MainActivity extends AppCompatActivity
                 .target(new LatLng(locLat, locLong)).zoom(14).build();
         mGoogleMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
+        getPlaygroundFromDatabase();
 
         /*latLng = new LatLng(locLat, locLong);
         MarkerOptions markerOptions = new MarkerOptions();
@@ -429,5 +465,4 @@ public class MainActivity extends AppCompatActivity
 
 
 }
-
 
