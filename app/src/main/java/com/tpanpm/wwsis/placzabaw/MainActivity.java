@@ -27,6 +27,8 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +49,9 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import java.util.List;
 
@@ -54,7 +59,7 @@ public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LocationListener {
 
 
-
+    Animation fabOpen, fabClose, fabClockwise, fabAnticlockwise;
     GoogleMap mGoogleMap;
     SupportMapFragment mFragment;
     double locLong;
@@ -63,7 +68,11 @@ public class MainActivity extends AppCompatActivity
     Criteria kr;
     String najlepszyDostawca;
     Location loc = null;
+    FloatingActionButton fab, fab_playground;
+    boolean isFabOpen;
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
 
+    int testValue = 0;
 
     private void refreshLocationInfo() {
         kr = new Criteria();
@@ -104,12 +113,44 @@ public class MainActivity extends AppCompatActivity
         mFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFragment.getMapAsync(this);
 
-        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab = (FloatingActionButton) findViewById(R.id.fab);
+        fab_playground = (FloatingActionButton) findViewById(R.id.fab_playground);
+        fabOpen = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
+        fabClose = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
+        fabClockwise = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_clockwise);
+        fabAnticlockwise = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_anticlockwise);
+
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                addNewPlayground(); //
+                addNewPlayground();
+                DatabaseReference myRef = database.getReference("message");
+                testValue += 1;
+                myRef.setValue(testValue);
+
+
+                if(isFabOpen){
+
+                    fab_playground.startAnimation(fabClose);
+                    fab.startAnimation(fabAnticlockwise);
+                    fab_playground.setClickable(false);
+                    isFabOpen = false;
+
+                }
+                else {
+                    fab_playground.startAnimation(fabOpen);
+                    fab.startAnimation(fabClockwise);
+                    fab_playground.setClickable(true);
+                    isFabOpen = true;
+                }
+
+
+
             }
+
+
+
         });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);

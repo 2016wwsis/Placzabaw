@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "471021476835",
+    "firebase_url": "https://placzabaw-625dd.firebaseio.com",
+    "project_id": "placzabaw-625dd",
+    "storage_bucket": "placzabaw-625dd.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:471021476835:android:e0661654541a2217",
+        "android_client_info": {
+          "package_name": "com.tpanpm.wwsis.placzabaw"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "471021476835-a01rn698ctgbste0iivqig1s5fakmp0o.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDOiB3P-XKoLxK39nl1PhJDZmJTEPv9FHk"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
