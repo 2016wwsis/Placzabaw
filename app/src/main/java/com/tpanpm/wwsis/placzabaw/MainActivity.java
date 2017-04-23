@@ -140,7 +140,6 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 addNewPlayground(new LatLng(locLat, locLong),"Twój nowy plac zabaw","A tu będzie krótki opis placu zabaw", 1); //
-                addNewPlayground();
                 DatabaseReference myRef = database.getReference("message");
                 testValue += 1;
                 myRef.setValue(testValue);
