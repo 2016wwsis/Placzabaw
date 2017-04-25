@@ -362,19 +362,20 @@ public class MainActivity extends AppCompatActivity
         return super.onOptionsItemSelected(item);
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
+        if (id == R.id.nav_search) {
+
+        } else if (id == R.id.nav_comments) {
 
         } else if (id == R.id.nav_slideshow) {
 
-        } else if (id == R.id.nav_manage) {
+        } else if (id == R.id.nav_about) {
 
         } /*else if (id == R.id.nav_share) {
 
@@ -464,10 +465,8 @@ public class MainActivity extends AppCompatActivity
 
                 String location = et.getText().toString();
 
-               // DrawerLayout mDrawerLayout;
-                //mDrawerLayout = (DrawerLayout) findViewById(R.id.nav_view);
-                //mDrawerLayout.closeDrawers();
 
+                et.setText("");
                 InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
 
@@ -478,6 +477,9 @@ public class MainActivity extends AppCompatActivity
             double lat = address.getLatitude();
             double lng = address.getLongitude();
             goToLocationZoom(lat, lng, 15);
+
+                hideNavigationDrawer();
+
         }
         else{
                 Toast.makeText(this, "Wpisz lokalizację", Toast.LENGTH_LONG).show();
@@ -487,6 +489,12 @@ public class MainActivity extends AppCompatActivity
 
     }
 
+
+    public void hideNavigationDrawer() {
+        DrawerLayout mDrawerLayout;
+        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
+        mDrawerLayout.closeDrawers();
+    }
 
 
 }
