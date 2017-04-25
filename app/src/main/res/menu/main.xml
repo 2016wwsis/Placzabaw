@@ -1,9 +1,20 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.example.hellomaps.MainActivity" >
+
+
     <item
-        android:id="@+id/action_settings"
-        android:orderInCategory="100"
-        android:title="@string/action_settings"
-        app:showAsAction="never" />
+        android:id="@+id/mapTypeNormal"
+        android:title="Normalna"/>
+    <item
+        android:id="@+id/mapTypeTerrain"
+        android:title="Teren"/>
+    <item
+        android:id="@+id/mapTypeSatellite"
+        android:title="Satelita"/>
+    <item
+        android:id="@+id/mapTypeHybrid"
+        android:title="Hybrydowa"/>
+
 </menu>

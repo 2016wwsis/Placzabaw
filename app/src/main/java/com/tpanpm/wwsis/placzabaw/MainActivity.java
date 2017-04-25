@@ -1,20 +1,25 @@
 package com.tpanpm.wwsis.placzabaw;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Resources;
 import android.graphics.drawable.Icon;
+import android.location.Address;
 import android.location.Criteria;
+import android.location.Geocoder;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -30,10 +35,13 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.view.inputmethod.InputMethodManager;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 
+import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -41,11 +49,15 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.io.IOException;
+import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 @SuppressWarnings("MismatchedReadAndWriteOfArray")
@@ -108,8 +120,8 @@ public class MainActivity extends AppCompatActivity
            playgroundList[i].name = "Plac nr " + i+1;
            playgroundList[i].description = "Opis placu nr " + i+1;
            playgroundList[i].rate = i+1;
-           playgroundList[i].playgroundLat = 51.39758437 + (random.nextDouble()/100);
-           playgroundList[i].playgroundLong = 17.66665765 + (random.nextDouble()/100);
+           playgroundList[i].playgroundLat = locLat + (random.nextDouble()/100);
+           playgroundList[i].playgroundLong = locLong + (random.nextDouble()/100);
            addNewPlayground(new LatLng(playgroundList[i].playgroundLat, playgroundList[i].playgroundLong), playgroundList[i].name, playgroundList[i].description, playgroundList[i].rate);
 
        }
@@ -139,7 +151,9 @@ public class MainActivity extends AppCompatActivity
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
                 addNewPlayground(new LatLng(locLat, locLong),"Twój nowy plac zabaw","A tu będzie krótki opis placu zabaw", 1); //
+
                 DatabaseReference myRef = database.getReference("message");
                 testValue += 1;
                 myRef.setValue(testValue);
@@ -254,7 +268,7 @@ public class MainActivity extends AppCompatActivity
                 markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_light_green_500_36dp));
                 break;
             default:
-                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_menu_camera));
+                markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_border_red_600_36dp));
                 break;
         }
 
@@ -327,14 +341,22 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        switch (item.getItemId()) {
+            case R.id.mapTypeNormal:
+                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                break;
+            case R.id.mapTypeSatellite:
+                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                break;
+            case R.id.mapTypeTerrain:
+                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                break;
+            case R.id.mapTypeHybrid:
+                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                break;
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+            default:
+                break;
         }
 
         return super.onOptionsItemSelected(item);
@@ -382,34 +404,16 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap.getUiSettings().setIndoorLevelPickerEnabled(true);
         mGoogleMap.setPadding(0, 0, 5, 130);
             //mGoogleMap.clear();
-           // LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 
           CameraPosition cameraPosition = new CameraPosition.Builder()
                     .target(new LatLng(locLat, locLong)).zoom(14).build();
             mGoogleMap.animateCamera(CameraUpdateFactory
                   .newCameraPosition(cameraPosition));
 
-            // create markerOptions
-          //  MarkerOptions markerOptions = new MarkerOptions().position(new LatLng(
-            //        location.getLatitude(), location.getLongitude()));
-            // ROSE color icon
-           // markerOptions.icon(BitmapDescriptorFactory
-             //       .defaultMarker(BitmapDescriptorFactory.HUE_ROSE));
-           // markerOptions.position(latLng);
-            // adding markerOptions
-         //  googleMap.addMarker(markerOptions);
-
-
-
-
-
-      //cameraPosition = new CameraPosition.Builder()
-        //        .target(new LatLng(location.getLatitude(), location.getLongitude())).zoom(20).build();
-
-      //  mGoogleMap.animateCamera(CameraUpdateFactory
-        //        .newCameraPosition(cameraPosition));
-
+        getPlaygroundFromDatabase();
     }
+
+
 
     @Override
     protected void onPause(){
@@ -421,30 +425,10 @@ public class MainActivity extends AppCompatActivity
     public void onLocationChanged(Location location) {
 
         //remove previous current location marker and add new one at current position
-
+            mGoogleMap.clear();
             refreshLocationInfo();
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(locLat, locLong)).zoom(14).build();
-        mGoogleMap.animateCamera(CameraUpdateFactory
-                .newCameraPosition(cameraPosition));
-        getPlaygroundFromDatabase();
+            getPlaygroundFromDatabase();
 
-        /*latLng = new LatLng(locLat, locLong);
-        MarkerOptions markerOptions = new MarkerOptions();
-        markerOptions.position(latLng);
-        markerOptions.title("Current Position");
-        markerOptions.icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED));
-        mCurrLocation = mGoogleMap.addMarker(markerOptions);
-        mGoogleMap.addMarker(markerOptions);
-        Toast.makeText(this,"Location Changed",Toast.LENGTH_SHORT).show();
-
-        CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(new LatLng(locLat, locLong)).zoom(14).build();
-        mGoogleMap.animateCamera(CameraUpdateFactory
-                .newCameraPosition(cameraPosition));
-        //If you only need one location, unregister the listener
-        //LocationServices.FusedLocationApi.removeLocationUpdates(mGoogleApiClient, this);*/
-       // t2.setText(String.format("long: %s \n", locLong));
     }
 
     @Override
@@ -461,6 +445,48 @@ public class MainActivity extends AppCompatActivity
     public void onProviderDisabled(String provider) {
 
     }
+
+    private void goToLocationZoom(double lat, double lng, float zoom) {
+        LatLng ll = new LatLng(lat, lng);
+        CameraUpdate update = CameraUpdateFactory.newLatLngZoom(ll, zoom);
+        mGoogleMap.moveCamera(update);
+    }
+
+
+    @RequiresApi(api = Build.VERSION_CODES.KITKAT)
+    public void geoLocate(View view) throws IOException {
+
+
+        EditText et = (EditText) findViewById(R.id.search_edit_text);
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+            if(!Objects.equals(et.getText().toString(), "")) {
+
+                String location = et.getText().toString();
+
+               // DrawerLayout mDrawerLayout;
+                //mDrawerLayout = (DrawerLayout) findViewById(R.id.nav_view);
+                //mDrawerLayout.closeDrawers();
+
+                InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+
+            Geocoder gc = new Geocoder(this);
+            List<Address> list = gc.getFromLocationName(location, 1);
+            Address address = list.get(0);
+
+            double lat = address.getLatitude();
+            double lng = address.getLongitude();
+            goToLocationZoom(lat, lng, 15);
+        }
+        else{
+                Toast.makeText(this, "Wpisz lokalizację", Toast.LENGTH_LONG).show();
+            }
+        }
+
+
+    }
+
 
 
 }
