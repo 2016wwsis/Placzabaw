@@ -2,7 +2,7 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="220dp"
+    android:layout_height="200dp"
     android:background="@drawable/pexels"
     android:gravity="bottom|right"
     android:orientation="horizontal"
@@ -13,30 +13,5 @@
     android:theme="@style/ThemeOverlay.AppCompat.Dark"
     app:layout_collapseParallaxMultiplier="1.0">
 
-<RelativeLayout
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:gravity="bottom"
-    android:orientation="horizontal"
-    android:weightSum="1">
-
-    <android.support.design.widget.TextInputEditText
-        android:id="@id/search_edit_text"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:hint="Szukaj lokalizacji..."
-         />
-
-    <ImageButton
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:clickable="true"
-        android:background="@drawable/ic_search_white_36dp"
-        android:onClick="geoLocate"
-        android:layout_alignRight="@+id/search_edit_text"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
-
-</RelativeLayout>
 
 </LinearLayout>

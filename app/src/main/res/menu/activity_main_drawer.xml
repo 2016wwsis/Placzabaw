@@ -4,25 +4,49 @@
 
 
 
-    <group android:checkableBehavior="single">
+    <group android:checkableBehavior="single"
+        android:id="@+id/group_one">
         <item
             android:id="@+id/nav_search"
             android:icon="@drawable/ic_search_black_48dp"
-            android:title="@string/wyszukaj" />
+            android:title="@string/wyszukaj"
+            android:checkable="false"/>
         <item
             android:id="@+id/nav_comments"
             android:icon="@drawable/ic_insert_comment_black_48dp"
-            android:title="@string/dodaj_komentarz" />
+            android:title="@string/dodaj_komentarz"
+            android:checkable="false"/>
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
-            android:title="@string/edytuj" />
+            android:title="@string/edytuj"
+            android:checkable="false"/>
+    </group>
+    <group android:checkableBehavior="single"
+        android:id="@+id/group_two">
+        <item
+            android:id="@+id/nav_map"
+            android:icon="@drawable/ic_map_black_24dp"
+            android:title="Mapa"
+            android:checked="true"/>
+        <item
+        android:id="@+id/nav_sattelite"
+        android:icon="@drawable/ic_satellite_black_24dp"
+        android:title="Satelita" />
+        <item
+            android:id="@+id/nav_hybrid"
+            android:icon="@drawable/ic_layers_black_24dp"
+            android:title="Hybryda" />
+    </group>
+    <group android:checkableBehavior="single"
+        android:id="@+id/group_three">
         <item
             android:id="@+id/nav_about"
             android:icon="@drawable/ic_info_outline_black_48dp"
-            android:title="@string/o_aplikacji" />
-    </group>
+            android:title="@string/o_aplikacji"
+            android:checkable="false"/>
 
+    </group>
 
 
 </menu>
