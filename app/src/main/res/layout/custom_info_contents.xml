@@ -52,6 +52,7 @@
                 android:text="A to jest przykładowy opis placu zabaw. Plac zabaw Nivea przy parku miejskim. Dużo miejsca i ciekawe zabawy. Minusem jest brak ogrodzenia przez co do podworka mają dostęp zwierzeta."
                 android:textSize="10dp" />
 
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -77,8 +78,8 @@
 
             </LinearLayout>
 
-
         </LinearLayout>
+
 
     </LinearLayout>
 

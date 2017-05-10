@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.database.DataSetObserver;
 import android.graphics.Color;
 import android.location.Address;
 import android.location.Criteria;
@@ -16,6 +17,7 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
+import android.net.Uri;
 import android.net.sip.SipAudioCall;
 import android.os.Build;
 import android.os.Bundle;
@@ -42,6 +44,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
@@ -52,6 +55,8 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
+import android.widget.ListAdapter;
+import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.RatingBar;
 import android.widget.RelativeLayout;
@@ -79,9 +84,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 
+import static com.google.android.gms.maps.GoogleMap.*;
+
 @SuppressWarnings("MismatchedReadAndWriteOfArray")
 public class MainActivity extends AppCompatActivity
-        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LocationListener, OnInfoWindowClickListener, GoogleMap.OnMarkerClickListener, GoogleMap.OnMapClickListener {
+        implements NavigationView.OnNavigationItemSelectedListener, OnMapReadyCallback, LocationListener, OnInfoWindowClickListener, OnMarkerClickListener, OnMapClickListener,OnInfoWindowCloseListener {
 
 
     Animation fabOpen, fabClose, fabClockwise, fabAnticlockwise;
@@ -93,7 +100,7 @@ public class MainActivity extends AppCompatActivity
     Criteria kr;
     String najlepszyDostawca;
     Location loc = null;
-    FloatingActionButton fab, fab_playground, fabMyLocation;
+    FloatingActionButton fab, fab_playground, fabMyLocation, fab_navigation;
     boolean isFabOpen;
     FirebaseDatabase database = FirebaseDatabase.getInstance();
     Playground[] playgroundList = new Playground[10];
@@ -102,6 +109,9 @@ public class MainActivity extends AppCompatActivity
     ImageButton buttonSearch;
     int testValue = 0;
     PopupMenu pp;
+    ListView listOfLocation;
+    String markerPosition, playgroundPosition, positionForNavigate;
+
 
     private void refreshLocationInfo() {
         kr = new Criteria();
@@ -179,6 +189,7 @@ public class MainActivity extends AppCompatActivity
         setSupportActionBar(toolbar);
        textSearch = (EditText) findViewById(R.id.search_edit_text);
         buttonSearch = (ImageButton) findViewById(R.id.search_button);
+        listOfLocation = (ListView)findViewById(R.id.list_view);
 
         mFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFragment.getMapAsync(this);
@@ -186,6 +197,7 @@ public class MainActivity extends AppCompatActivity
 
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab_playground = (FloatingActionButton) findViewById(R.id.fab_playground);
+        fab_navigation = (FloatingActionButton) findViewById(R.id.fab_navigation);
         fabOpen = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_open);
         fabClose = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fab_close);
         fabClockwise = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.rotate_clockwise);
@@ -200,26 +212,15 @@ public class MainActivity extends AppCompatActivity
         pp.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
             @Override
             public boolean onMenuItemClick(MenuItem item) {
-
-                Toast.makeText(MainActivity.this, String.valueOf(item.getTitle()), Toast.LENGTH_SHORT).show();
-                pp.getMenu().clear();
-                String location = String.valueOf(item.getTitle());
-                Geocoder gc = new Geocoder(MainActivity.this);
-                List<Address> list = null;//, locLat-1,locLong-10,locLat+1, locLong+10);
-                try {
-                    list = gc.getFromLocationName(location, 1);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                Address address = list.get(0);
-                double lat = address.getLatitude();
-                double lng = address.getLongitude();
-                goToLocationZoom(lat, lng, 15);
-
-                return true;
+                String locationName = String.valueOf(item.getTitle());
+                goToCheckLocation(locationName);
+                hideKeyboard();
+                clearEditText();
+                                return true;
             }
         });
+
+
 
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -266,6 +267,20 @@ public class MainActivity extends AppCompatActivity
 
         });
 
+        fab_navigation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+
+                Uri gmmIntentUri = Uri.parse("google.navigation:q="+positionForNavigate);
+                Intent mapIntent = new Intent(Intent.ACTION_VIEW, gmmIntentUri);
+                mapIntent.setPackage("com.google.android.apps.maps");
+                startActivity(mapIntent);
+
+            }
+
+
+        });
+
         //final EditText textSearch = (EditText)findViewById(R.id.search_edit_text);
         //final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.rr);
        // relativeLayout.setBackgroundColor(Color.argb(150, 255, 255, 255));
@@ -277,30 +292,9 @@ public class MainActivity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 textSearch.setCursorVisible(true);
+
             }
         });
-/*
-        textSearch.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-            @Override
-            public void onFocusChange(View v, boolean hasFocus) {
-                if(hasFocus){
-                   // relativeLayout.setBackgroundColor(Color.rgb(255, 255, 255));
-                  // textSearch.setTextColor(Color.GRAY);
-                    Toast.makeText(MainActivity.this, "true", Toast.LENGTH_SHORT).show();
-                }
-                else{
-
-                    if(imm.isActive()){
-                        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-                       }
-                   // relativeLayout.setBackgroundColor(Color.argb(150, 255, 255, 255));
-                   // textSearch.setTextColor(Color.LTGRAY);
-                    textSearch.setText("");
-                    Toast.makeText(MainActivity.this, "false", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });*/
-
 
         textSearch.setOnEditorActionListener(new EditText.OnEditorActionListener() {
             @Override
@@ -330,10 +324,16 @@ public class MainActivity extends AppCompatActivity
                 String value = s.toString();
                 if (value.length() > 0) {
                     buttonSearch.setBackgroundResource(R.drawable.ic_search_light_green_600_36dp);
+
+                    //try {
+                   //     geoLocate(findViewById(R.id.search_edit_text));
+                   // } catch (IOException e) {
+                   //     e.printStackTrace();
+                   // }
+
                 }else{
                     buttonSearch.setBackgroundResource(R.drawable.ic_search_grey_500_36dp);
                 }
-
             }
 
             @Override
@@ -368,7 +368,25 @@ public class MainActivity extends AppCompatActivity
 
         }
 
+    private void goToCheckLocation(String locationName) {
+        Toast.makeText(MainActivity.this, locationName, Toast.LENGTH_SHORT).show();
 
+        Address address;
+        List<Address> list;
+        pp.getMenu().clear();
+
+        Geocoder gc = new Geocoder(MainActivity.this);
+
+        try {
+            list = gc.getFromLocationName(locationName, 1);
+            address = list.get(0);
+            double lat = address.getLatitude();
+            double lng = address.getLongitude();
+            goToLocationZoom(lat, lng, 15);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
 
     private void checkNetworkAndLocation() {
@@ -502,16 +520,16 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.mapTypeNormal:
-                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+                mGoogleMap.setMapType(MAP_TYPE_NORMAL);
                 break;
             case R.id.mapTypeSatellite:
-                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+                mGoogleMap.setMapType(MAP_TYPE_SATELLITE);
                 break;
             case R.id.mapTypeTerrain:
-                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_TERRAIN);
+                mGoogleMap.setMapType(MAP_TYPE_TERRAIN);
                 break;
             case R.id.mapTypeHybrid:
-                mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+                mGoogleMap.setMapType(MAP_TYPE_HYBRID);
                 break;
 
             default:
@@ -537,11 +555,11 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_about) {
             Toast.makeText(MainActivity.this ,"About", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_map) {
-            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+            mGoogleMap.setMapType(MAP_TYPE_NORMAL);
         } else if (id == R.id.nav_sattelite) {
-            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+            mGoogleMap.setMapType(MAP_TYPE_SATELLITE);
         }else if (id == R.id.nav_hybrid) {
-            mGoogleMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+            mGoogleMap.setMapType(MAP_TYPE_HYBRID);
         }
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
@@ -559,7 +577,8 @@ public class MainActivity extends AppCompatActivity
            return;
         }
 
-        mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
+        mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+        mGoogleMap.getUiSettings().setZoomControlsEnabled(false);
         mGoogleMap.getUiSettings().setCompassEnabled(true);
 
         View locationCompass = ((View)findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("5"));
@@ -578,6 +597,7 @@ public class MainActivity extends AppCompatActivity
         mGoogleMap.setOnInfoWindowClickListener(this);
         mGoogleMap.setOnMarkerClickListener(this);
         mGoogleMap.setOnMapClickListener(this);
+        mGoogleMap.setOnInfoWindowCloseListener(this);
     }
 
 
@@ -628,11 +648,11 @@ public class MainActivity extends AppCompatActivity
     private void goToLocationZoom(double lat, double lng, float zoom) {
         LatLng ll = new LatLng(lat, lng);
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(ll)      // Sets the center of the map to Mountain View
-                .zoom(zoom)                   // Sets the zoom
-                .bearing(0)                // Sets the orientation of the camera to east
-                .tilt(0)                   // Sets the tilt of the camera to 30 degrees
-                .build();                   // Creates a CameraPosition from the builder
+                .target(ll)
+                .zoom(zoom)
+                .bearing(0)
+                .tilt(0)
+                .build();
         mGoogleMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
     }
 
@@ -641,43 +661,28 @@ public class MainActivity extends AppCompatActivity
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void geoLocate(View view) throws IOException {
 
-        if(pp.getMenu().size()>0){
-            pp.getMenu().clear();
-        }
+       clearPopupListOfLocation();
 
-        if
-                (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if(!Objects.equals(textSearch.getText().toString(), "")) {
 
                 String location = textSearch.getText().toString();
 
-                InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
-                imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
-
                 Geocoder gc = new Geocoder(this);
-                List<Address> list = gc.getFromLocationName(location, 20);//, locLat-1,locLong-10,locLat+1, locLong+10);
+                List<Address> list = gc.getFromLocationName(location, 20);
 
+                          if(list.size()==1){
+                           Address address = list.get(0);
+                           double lat = address.getLatitude();
+                           double lng = address.getLongitude();
+                           goToLocationZoom(lat, lng, 15);
+                           hideKeyboard();
+                           clearEditText();
+                         }
+                         else{
+                                      createPopupListOfLocation(list);
+                        }
 
-
-              for(int i=0; i<list.size(); i++) {
-                   pp.getMenu().add(String.valueOf(list.get(i).getAddressLine(0))+", "+
-                                            String.valueOf(list.get(i).getAdminArea()));
-               }
-
-                pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
-
-                pp.show();
-
-                Address address = list.get(0);
-                double lat = address.getLatitude();
-                double lng = address.getLongitude();
-               // goToLocationZoom(lat, lng, 15);
-
-                textSearch.setText("");
-                textSearch.clearFocus();
-                textSearch.setCursorVisible(false);
-                textSearch.setFocusable(false);
-                textSearch.setFocusableInTouchMode(true);
 
             }
             else{
@@ -686,16 +691,44 @@ public class MainActivity extends AppCompatActivity
         }
     }
 
-    public final class Constants {
-        public static final int SUCCESS_RESULT = 0;
-        public static final int FAILURE_RESULT = 1;
-        static final String PACKAGE_NAME =
-                "com.google.android.gms.location.sample.locationaddress";
-        public static final String RECEIVER = PACKAGE_NAME + ".RECEIVER";
-        public static final String RESULT_DATA_KEY = PACKAGE_NAME +
-                ".RESULT_DATA_KEY";
-        public static final String LOCATION_DATA_EXTRA = PACKAGE_NAME +
-                ".LOCATION_DATA_EXTRA";
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(Activity.INPUT_METHOD_SERVICE);
+        imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+    }
+
+
+    public void clearEditText(){
+     textSearch.setText("");
+     textSearch.clearFocus();
+     textSearch.setCursorVisible(false);
+     textSearch.setFocusable(false);
+     textSearch.setFocusableInTouchMode(true);
+    }
+
+ public void createPopupListOfLocation(List<Address> list){
+     for(int i=0; i<list.size(); i++) {
+         pp.getMenu().add(String.valueOf(list.get(i).getAddressLine(0))+", "+
+                 String.valueOf(list.get(i).getAdminArea()));
+     }
+     pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
+     pp.show();
+ }
+
+    public void createListViewOfLocation(List<Address> list){
+
+        for(int i=0; i<list.size(); i++) {
+          //  listOfLocation.setAdapter();
+                  //  (String.valueOf(list.get(i).getAddressLine(0))+", "+
+                 //   String.valueOf(list.get(i).getAdminArea()));
+        }
+        pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
+        pp.show();
+    }
+
+    private void clearPopupListOfLocation() {
+        if(pp.getMenu().size()>0){
+            pp.getMenu().clear();
+        }
     }
 
     public void hideNavigationDrawer() {
@@ -704,12 +737,30 @@ public class MainActivity extends AppCompatActivity
         mDrawerLayout.closeDrawers();
     }
 
+    public void fabAnimation(FloatingActionButton fab_type){
+        if (isFabOpen) {
+
+            fab_type.startAnimation(fabClose);
+            fab.startAnimation(fabAnticlockwise);
+            isFabOpen = false;
+
+        } else {
+            fab_type.startAnimation(fabOpen);
+            fab.startAnimation(fabClockwise);
+
+            isFabOpen = true;
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public boolean onMarkerClick(Marker marker){
-        String markerPosition, playgroundPosition;
+
+        fabAnimation(fab_navigation);
+
         MarkerAdapter markerAdapter = new MarkerAdapter(getLayoutInflater());
         markerPosition = String.valueOf(marker.getPosition());
+        positionForNavigate = String.valueOf(marker.getPosition().latitude)+","+String.valueOf(marker.getPosition().longitude);
 
         for(int i=0;i<10;i++){
             playgroundPosition = String.valueOf(new LatLng(playgroundList[i].playgroundLat, playgroundList[i].playgroundLong));
@@ -724,17 +775,19 @@ public class MainActivity extends AppCompatActivity
                 .newCameraPosition(cameraPosition));
 
         mGoogleMap.setInfoWindowAdapter(markerAdapter);
-        marker.showInfoWindow();
-        return true;
 
+        marker.showInfoWindow();
+        //fab_navigation.setVisibility(View.VISIBLE);
+
+        return true;
     }
 
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Toast.makeText(this, "Info window clicked",
-                Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "This on click method", Toast.LENGTH_SHORT).show();
     }
+
 
     @Override
     public void onMapClick(LatLng latLng) {
@@ -742,5 +795,9 @@ public class MainActivity extends AppCompatActivity
     }
 
 
+    @Override
+    public void onInfoWindowClose(Marker marker) {
+        fabAnimation(fab_navigation);
+    }
 }
 

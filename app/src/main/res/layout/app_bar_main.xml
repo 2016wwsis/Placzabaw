@@ -51,4 +51,17 @@
         app:pressedTranslationZ="12dp"
         app:srcCompat="@android:drawable/ic_input_add" />
 
+    <android.support.design.widget.FloatingActionButton
+        android:id="@+id/fab_navigation"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|end"
+        android:elevation="6dp"
+        android:tint="#212121"
+        app:backgroundTint="#dfdfdf"
+        android:layout_marginBottom="145dp"
+        android:layout_marginRight="@dimen/margin_right_map"
+        app:srcCompat="@drawable/ic_map_white_24dp"
+        android:visibility="invisible"/>
+
 </android.support.design.widget.CoordinatorLayout>
