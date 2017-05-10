@@ -111,7 +111,7 @@ public class MainActivity extends AppCompatActivity
     PopupMenu pp;
     ListView listOfLocation;
     String markerPosition, playgroundPosition, positionForNavigate;
-
+    RelativeLayout relativeLayout;
 
     private void refreshLocationInfo() {
         kr = new Criteria();
@@ -136,6 +136,13 @@ public class MainActivity extends AppCompatActivity
             locLat = loc.getLatitude();
             locLong = loc.getLongitude();
         }
+
+        if (mGoogleMap!=null){
+               MarkerOptions markers = new MarkerOptions()
+                .position(new LatLng(locLat,locLong))
+                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_person_pin_circle_indigo_700_48dp));
+               mGoogleMap.addMarker(markers);}
+
     }
 
 
@@ -190,7 +197,7 @@ public class MainActivity extends AppCompatActivity
        textSearch = (EditText) findViewById(R.id.search_edit_text);
         buttonSearch = (ImageButton) findViewById(R.id.search_button);
         listOfLocation = (ListView)findViewById(R.id.list_view);
-
+        relativeLayout = (RelativeLayout) findViewById(R.id.rr);
         mFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFragment.getMapAsync(this);
 
@@ -261,6 +268,7 @@ public class MainActivity extends AppCompatActivity
         fabMyLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                refreshLocationInfo();
                 goToLocationZoom(locLat, locLong, 15);
             }
 
@@ -325,14 +333,9 @@ public class MainActivity extends AppCompatActivity
                 if (value.length() > 0) {
                     buttonSearch.setBackgroundResource(R.drawable.ic_search_light_green_600_36dp);
 
-                    //try {
-                   //     geoLocate(findViewById(R.id.search_edit_text));
-                   // } catch (IOException e) {
-                   //     e.printStackTrace();
-                   // }
-
                 }else{
                     buttonSearch.setBackgroundResource(R.drawable.ic_search_grey_500_36dp);
+
                 }
             }
 
@@ -577,7 +580,8 @@ public class MainActivity extends AppCompatActivity
            return;
         }
 
-        mGoogleMap.getUiSettings().setMapToolbarEnabled(false);
+        mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
+        mGoogleMap.getUiSettings().setMyLocationButtonEnabled(true);
         mGoogleMap.getUiSettings().setZoomControlsEnabled(false);
         mGoogleMap.getUiSettings().setCompassEnabled(true);
 
@@ -682,8 +686,6 @@ public class MainActivity extends AppCompatActivity
                          else{
                                       createPopupListOfLocation(list);
                         }
-
-
             }
             else{
                 Toast.makeText(this, "Wpisz lokalizację", Toast.LENGTH_LONG).show();
@@ -696,23 +698,22 @@ public class MainActivity extends AppCompatActivity
         imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
     }
 
-
     public void clearEditText(){
-     textSearch.setText("");
-     textSearch.clearFocus();
-     textSearch.setCursorVisible(false);
-     textSearch.setFocusable(false);
-     textSearch.setFocusableInTouchMode(true);
+         textSearch.setText("");
+         textSearch.clearFocus();
+         textSearch.setCursorVisible(false);
+         textSearch.setFocusable(false);
+         textSearch.setFocusableInTouchMode(true);
     }
 
- public void createPopupListOfLocation(List<Address> list){
-     for(int i=0; i<list.size(); i++) {
-         pp.getMenu().add(String.valueOf(list.get(i).getAddressLine(0))+", "+
-                 String.valueOf(list.get(i).getAdminArea()));
-     }
-     pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
-     pp.show();
- }
+    public void createPopupListOfLocation(List<Address> list){
+        for(int i=0; i<list.size(); i++) {
+            pp.getMenu().add(String.valueOf(list.get(i).getAddressLine(0))+", "+
+                    String.valueOf(list.get(i).getAdminArea()));
+        }
+        pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
+        pp.show();
+    }
 
     public void createListViewOfLocation(List<Address> list){
 
@@ -785,7 +786,7 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Toast.makeText(this, "This on click method", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "This is on click method", Toast.LENGTH_SHORT).show();
     }
 
 

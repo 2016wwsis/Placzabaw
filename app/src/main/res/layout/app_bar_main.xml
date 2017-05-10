@@ -31,11 +31,11 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:elevation="6dp"
-        android:tint="#212121"
+        android:tint="#7d7d7d"
         app:backgroundTint="@color/colorAddPlus"
         android:layout_marginBottom="80dp"
         android:layout_marginRight="@dimen/margin_right_map"
-        app:srcCompat="@android:drawable/ic_menu_mylocation"
+        app:srcCompat="@drawable/ic_person_pin_circle_indigo_700_48dp"
         />
 
     <android.support.design.widget.FloatingActionButton
@@ -55,13 +55,13 @@
         android:id="@+id/fab_navigation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
+        android:layout_gravity="top|end"
         android:elevation="6dp"
-        android:tint="#212121"
-        app:backgroundTint="#dfdfdf"
-        android:layout_marginBottom="145dp"
+        app:backgroundTint="#009900"
+        android:tint="@color/colorAddPlus"
+        android:layout_marginTop="75dp"
         android:layout_marginRight="@dimen/margin_right_map"
-        app:srcCompat="@drawable/ic_map_white_24dp"
+        app:srcCompat="@drawable/ic_navigation_red_a700_36dp"
         android:visibility="invisible"/>
 
 </android.support.design.widget.CoordinatorLayout>
