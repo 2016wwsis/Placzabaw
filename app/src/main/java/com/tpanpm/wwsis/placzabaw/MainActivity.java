@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity
     Location loc = null;
     FloatingActionButton fab, fab_playground, fabMyLocation, fab_navigation;
     boolean isFabOpen;
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
+   // FirebaseDatabase database = FirebaseDatabase.getInstance();
     Playground[] playgroundList = new Playground[10];
     InputMethodManager imm;
     EditText textSearch;
@@ -112,6 +112,8 @@ public class MainActivity extends AppCompatActivity
     ListView listOfLocation;
     String markerPosition, playgroundPosition, positionForNavigate;
     RelativeLayout relativeLayout;
+    Playground playground;
+
 
     private void refreshLocationInfo() {
         kr = new Criteria();
@@ -238,9 +240,8 @@ public class MainActivity extends AppCompatActivity
                         "A tu będzie krótki opis placu zabaw. dla przykładu co zawiera plac lub jakie są mankamenty",
                         1.5f, "m99"); //
 
-                DatabaseReference myRef = database.getReference("message");
-                testValue += 1;
-                myRef.setValue(testValue);
+                playground = new Playground(10.0, 35.0, "Name", "Desc", 5);
+                playground.addPlayGround(playground);
 
 
                /* if (isFabOpen) {
