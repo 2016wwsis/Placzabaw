@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity
     RelativeLayout relativeLayout;
     Playground playground;
     static final int REQUEST_IMAGE_CAPTURE = 1;
+    public final static String EXTRA_MESSAGE = "MESSAGE";
 
 
     private void refreshLocationInfo() {
@@ -205,7 +206,6 @@ public class MainActivity extends AppCompatActivity
         mFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         mFragment.getMapAsync(this);
 
-
         fab = (FloatingActionButton) findViewById(R.id.fab);
         fab_playground = (FloatingActionButton) findViewById(R.id.fab_playground);
         fab_navigation = (FloatingActionButton) findViewById(R.id.fab_navigation);
@@ -244,8 +244,11 @@ public class MainActivity extends AppCompatActivity
 
                 playground = new Playground(10.0, 35.0, "Name", "Desc", 5);
                 playground.addPlayGround(playground);
+              Intent intent = new Intent(MainActivity.this, AddPlayground.class);
+Double test = 4.5;
+                intent.putExtra(EXTRA_MESSAGE, test);
 
-startActivity(new Intent(MainActivity.this, AddPlayground.class));
+startActivity(intent);
                /* if (isFabOpen) {
 
                     fab_playground.startAnimation(fabClose);
