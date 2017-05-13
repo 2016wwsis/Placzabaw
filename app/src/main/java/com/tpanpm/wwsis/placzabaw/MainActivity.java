@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.net.sip.SipAudioCall;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
@@ -113,6 +114,7 @@ public class MainActivity extends AppCompatActivity
     String markerPosition, playgroundPosition, positionForNavigate;
     RelativeLayout relativeLayout;
     Playground playground;
+    static final int REQUEST_IMAGE_CAPTURE = 1;
 
 
     private void refreshLocationInfo() {
@@ -558,7 +560,12 @@ startActivity(new Intent(MainActivity.this, AddPlayground.class));
             Toast.makeText(MainActivity.this ,"3", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_about) {
             Toast.makeText(MainActivity.this ,"About", Toast.LENGTH_SHORT).show();
-        } else if (id == R.id.nav_map) {
+        } else if (id == R.id.nav_photo) {
+            Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+            if (takePictureIntent.resolveActivity(getPackageManager()) != null) {
+                startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE);
+            }
+        }else if (id == R.id.nav_map) {
             mGoogleMap.setMapType(MAP_TYPE_NORMAL);
         } else if (id == R.id.nav_sattelite) {
             mGoogleMap.setMapType(MAP_TYPE_SATELLITE);

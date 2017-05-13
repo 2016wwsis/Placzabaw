@@ -21,6 +21,11 @@
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/edytuj"
             android:checkable="false"/>
+        <item
+            android:id="@+id/nav_photo"
+            android:icon="@drawable/ic_menu_slideshow"
+            android:title="Dodaj zdjęcie"
+            android:checkable="false"/>
     </group>
     <group android:checkableBehavior="single"
         android:id="@+id/group_two">
