@@ -231,7 +231,7 @@ public class MainActivity extends AppCompatActivity
 
 
 
-        fab.setOnClickListener(new View.OnClickListener() {
+         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
@@ -243,7 +243,7 @@ public class MainActivity extends AppCompatActivity
                 playground = new Playground(10.0, 35.0, "Name", "Desc", 5);
                 playground.addPlayGround(playground);
 
-
+startActivity(new Intent(MainActivity.this, AddPlayground.class));
                /* if (isFabOpen) {
 
                     fab_playground.startAnimation(fabClose);
@@ -800,6 +800,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onInfoWindowClose(Marker marker) {
         fabAnimation(fab_navigation);
+    }
+
+    public void add_Playground(View view) {
+        Intent intent = new Intent(this, AddPlayground.class);
+        startActivity(intent);
     }
 }
 
