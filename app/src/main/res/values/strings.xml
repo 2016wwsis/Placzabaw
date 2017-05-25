@@ -9,5 +9,9 @@
     <string name="dodaj_komentarz">Dodaj komentarz</string>
     <string name="edytuj">Edytuj</string>
     <string name="o_aplikacji">O aplikacji</string>
-    <string name="hint_search_edit_text">Szukaj lokalizacji...               </string>
+    <string name="hint_search_edit_text">Szukaj lokalizacji…</string>
+    <string name="nazwa_placu_zabaw">Nazwa placu zabaw</string>
+    <string name="tutaj_wstaw_opis_placu_zabaw">Tutaj wstaw opis placu zabaw</string>
+    <string name="dodaj">Dodaj</string>
+    <string name="plac_zabaw">Plac Zabaw</string>
 </resources>
