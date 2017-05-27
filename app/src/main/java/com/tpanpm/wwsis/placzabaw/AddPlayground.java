@@ -32,8 +32,8 @@ public class AddPlayground extends AppCompatActivity {
         playGroundComment = (EditText) findViewById(R.id.editText_playground_comment);
 
         Intent intent = getIntent();
-        Double message1 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE, 0);
-        Double message2 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE, 1);
+        Double message1 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE1, 0);
+        Double message2 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE2, 0);
         Toast.makeText(this, String.valueOf(message1)+" "+String.valueOf(message2), Toast.LENGTH_SHORT).show();
 
     }

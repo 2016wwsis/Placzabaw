@@ -115,8 +115,8 @@ public class MainActivity extends AppCompatActivity
     RelativeLayout relativeLayout;
     Playground playground;
     static final int REQUEST_IMAGE_CAPTURE = 1;
-    public final static String EXTRA_MESSAGE = "MESSAGE";
-
+    public final static String EXTRA_MESSAGE1 = "MESSAGE1";
+    public final static String EXTRA_MESSAGE2 = "MESSAGE2";
 
     private void refreshLocationInfo() {
         kr = new Criteria();
@@ -246,8 +246,8 @@ public class MainActivity extends AppCompatActivity
                 playground.addPlayGround(playground);
               Intent intent = new Intent(MainActivity.this, AddPlayground.class);
 Double test = 4.5;
-                intent.putExtra(EXTRA_MESSAGE, locLong);
-                intent.putExtra(EXTRA_MESSAGE, locLat);
+                intent.putExtra(EXTRA_MESSAGE1, locLong);
+                intent.putExtra(EXTRA_MESSAGE2, locLat);
 
 startActivity(intent);
                /* if (isFabOpen) {
