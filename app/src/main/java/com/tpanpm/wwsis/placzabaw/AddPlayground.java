@@ -32,7 +32,7 @@ package com.tpanpm.wwsis.placzabaw;
 
 public class AddPlayground extends AppCompatActivity {
 
-    EditText playGroundName;
+    EditText playGroundName, playGroundComment;
     RatingBar rate;
     ImageButton imageButton;
 
@@ -179,9 +179,10 @@ public class AddPlayground extends AppCompatActivity {
         }
 
         Intent intent = getIntent();
-        Double message = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE1, 0);
+        Double message1 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE1, 0);
+        Double message2 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE2, 0);
+        Toast.makeText(this, String.valueOf(message1)+" "+String.valueOf(message2), Toast.LENGTH_SHORT).show();
 
-        Toast.makeText(this, String.valueOf(message), Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -249,7 +250,7 @@ public class AddPlayground extends AppCompatActivity {
         public void addNewPlayground (View view){
             Playground playground = new Playground(42.0, 17.0,
                     String.valueOf(playGroundName.getText()),
-                    "ghvhg",
+                    String.valueOf(playGroundComment.getText()),
                     rate.getRating());
         }
 }

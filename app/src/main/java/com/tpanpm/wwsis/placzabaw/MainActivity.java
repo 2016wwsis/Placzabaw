@@ -246,8 +246,8 @@ public class MainActivity extends AppCompatActivity
                 playground.addPlayGround(playground);
               Intent intent = new Intent(MainActivity.this, AddPlayground.class);
 Double test = 4.5;
-                intent.putExtra(EXTRA_MESSAGE1, locLong);
-                intent.putExtra(EXTRA_MESSAGE2, locLat);
+                intent.putExtra(EXTRA_MESSAGE2, locLong);
+                intent.putExtra(EXTRA_MESSAGE1, locLat);
 
 startActivity(intent);
                /* if (isFabOpen) {
