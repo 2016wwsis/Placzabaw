@@ -246,7 +246,8 @@ public class MainActivity extends AppCompatActivity
                 playground.addPlayGround(playground);
               Intent intent = new Intent(MainActivity.this, AddPlayground.class);
 Double test = 4.5;
-                intent.putExtra(EXTRA_MESSAGE, test);
+                intent.putExtra(EXTRA_MESSAGE, locLong);
+                intent.putExtra(EXTRA_MESSAGE, locLat);
 
 startActivity(intent);
                /* if (isFabOpen) {
@@ -728,11 +729,11 @@ startActivity(intent);
 
     public void createListViewOfLocation(List<Address> list){
 
-        for(int i=0; i<list.size(); i++) {
+        // for(int i=0; i<list.size(); i++) {
           //  listOfLocation.setAdapter();
                   //  (String.valueOf(list.get(i).getAddressLine(0))+", "+
                  //   String.valueOf(list.get(i).getAdminArea()));
-        }
+       // }
         pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
         pp.show();
     }

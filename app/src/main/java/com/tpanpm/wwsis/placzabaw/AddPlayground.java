@@ -32,9 +32,10 @@ public class AddPlayground extends AppCompatActivity {
         playGroundComment = (EditText) findViewById(R.id.editText_playground_comment);
 
         Intent intent = getIntent();
-        Double message = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE, 0);
+        Double message1 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE, 0);
+        Double message2 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE, 1);
+        Toast.makeText(this, String.valueOf(message1)+" "+String.valueOf(message2), Toast.LENGTH_SHORT).show();
 
-        Toast.makeText(this, String.valueOf(message), Toast.LENGTH_SHORT).show();
     }
 
     // Obsluga aparatu
@@ -63,7 +64,7 @@ public class AddPlayground extends AppCompatActivity {
         public void addNewPlayground (View view){
             Playground playground = new Playground(42.0, 17.0,
                     String.valueOf(playGroundName.getText()),
-                    "ghvhg",
+                    String.valueOf(playGroundComment.getText()),
                     rate.getRating());
         }
 }
