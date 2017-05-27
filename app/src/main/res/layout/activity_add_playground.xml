@@ -29,6 +29,7 @@
             android:layout_height="0dp"
             android:layout_weight="0.52"
             android:onClick="addPhoto"
+            android:scaleType="fitCenter"
             app:srcCompat="@drawable/ic_menu_camera"
             android:contentDescription="@string/plac_zabaw" />
         <RatingBar
