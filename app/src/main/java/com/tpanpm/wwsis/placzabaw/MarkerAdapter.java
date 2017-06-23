@@ -13,7 +13,7 @@ public class MarkerAdapter  implements InfoWindowAdapter {
         float rate = 0;
         private TextView textViewTitle;
         private TextView textViewDescription;
-        ArrayList rateTable = new ArrayList();
+     
 
         public MarkerAdapter(LayoutInflater inflater) {
             this.inflater = inflater;
