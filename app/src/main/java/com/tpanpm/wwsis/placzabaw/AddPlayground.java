@@ -1,41 +1,40 @@
 package com.tpanpm.wwsis.placzabaw;
 
-    import android.content.Context;
-    import android.content.Intent;
-    import android.content.pm.PackageManager;
-    import android.content.pm.ResolveInfo;
-    import android.graphics.Bitmap;
-    import android.graphics.BitmapFactory;
-    import android.net.Uri;
-    import android.os.Build;
-    import android.os.Bundle;
-    import android.os.Environment;
-    import android.provider.MediaStore;
-    import android.support.v7.app.AppCompatActivity;
-    import android.util.Log;
-    import android.view.View;
-    import android.widget.Button;
-    import android.widget.EditText;
-    import android.widget.ImageButton;
-    import android.widget.RatingBar;
-    import android.widget.Toast;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
+import android.os.Build;
+import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.RatingBar;
+import android.widget.Toast;
 
-    import java.io.File;
-    import java.io.IOException;
-    import java.text.SimpleDateFormat;
-    import java.util.Date;
-    import java.util.List;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.List;
 
-    import static com.tpanpm.wwsis.placzabaw.MainActivity.REQUEST_IMAGE_CAPTURE;
-
-// import static com.tpanpm.wwsis.placzabaw.MainActivity.REQUEST_IMAGE_CAPTURE;
+import static com.tpanpm.wwsis.placzabaw.MainActivity.REQUEST_IMAGE_CAPTURE;
 
 public class AddPlayground extends AppCompatActivity {
 
     EditText playGroundName, playGroundComment;
     RatingBar rate;
     ImageButton imageButton;
-
+    Double locLat, locLong;
     private static final int ACTION_TAKE_PHOTO_B = 1;
     private static final int ACTION_TAKE_PHOTO_S = 2;
     private static final String BITMAP_STORAGE_KEY = "viewbitmap";
@@ -71,18 +70,12 @@ public class AddPlayground extends AppCompatActivity {
         imageFileName = JPEG_FILE_PREFIX;
         File albumF = getAlbumDir();
         File imageF = File.createTempFile(imageFileName, JPEG_FILE_SUFFIX, albumF);
-        //  Toast.makeText(this,
-        //        imageFileName + "\n"
-        //       + imageF.getName()
-        //      +"\n"+albumF,
-        //     Toast.LENGTH_LONG).show();
         imageFileName=imageF.getName();
         return imageF;
     }
     private File setUpPhotoFile() throws IOException {
         File f = createImageFile();
         mCurrentPhotoPath = f.getAbsolutePath();
-        // po createImageFile Toast.makeText(this, f.getName(), Toast.LENGTH_SHORT).show();
         return f;
     }
     private void setPic() {
@@ -109,7 +102,6 @@ public class AddPlayground extends AppCompatActivity {
     private void galleryAddPic() {
         Intent mediaScanIntent = new Intent("android.intent.action.MEDIA_SCANNER_SCAN_FILE");
         File f = new File(mCurrentPhotoPath);
-        //po zdjeciu
         Uri contentUri = Uri.fromFile(f);
         mediaScanIntent.setData(contentUri);
         this.sendBroadcast(mediaScanIntent);
@@ -122,7 +114,6 @@ public class AddPlayground extends AppCompatActivity {
                 try {
                     f = setUpPhotoFile();
                     mCurrentPhotoPath = f.getAbsolutePath();
-                    //Toast.makeText(this, f.getName()+"\n hello", Toast.LENGTH_SHORT).show();
                     takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(f));
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -132,7 +123,7 @@ public class AddPlayground extends AppCompatActivity {
                 break;
             default:
                 break;
-        } // switch
+        }
         startActivityForResult(takePictureIntent, actionCode);
     }
     private void handleSmallCameraPhoto(Intent intent) {
@@ -162,6 +153,7 @@ public class AddPlayground extends AppCompatActivity {
 
         setContentView(R.layout.activity_add_playground);
         playGroundName = (EditText) findViewById(R.id.editText_playground_name);
+        playGroundComment = (EditText) findViewById(R.id.editText_playground_comment);
         rate = (RatingBar) findViewById(R.id.ratingBar);
         mImageView = (ImageButton) findViewById(R.id.imageButton_add_playground_image);
         mImageBitmap = null;
@@ -179,9 +171,9 @@ public class AddPlayground extends AppCompatActivity {
         }
 
         Intent intent = getIntent();
-        Double message1 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE1, 0);
-        Double message2 = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE2, 0);
-        Toast.makeText(this, String.valueOf(message1)+" "+String.valueOf(message2), Toast.LENGTH_SHORT).show();
+        locLat = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE1, 0);
+        locLong = intent.getDoubleExtra(MainActivity.EXTRA_MESSAGE2, 0);
+        //Toast.makeText(this, String.valueOf(locLat)+" "+String.valueOf(locLong), Toast.LENGTH_SHORT).show();
 
     }
 
@@ -193,16 +185,16 @@ public class AddPlayground extends AppCompatActivity {
                     handleBigCameraPhoto();
                 }
                 break;
-            } // ACTION_TAKE_PHOTO_B
+            }
             case ACTION_TAKE_PHOTO_S: {
                 if (resultCode == RESULT_OK) {
                     handleSmallCameraPhoto(data);
                 }
                 break;
-            } // ACTION_TAKE_PHOTO_S
-        } // switch
+            }
+        }
     }
-    // Some lifecycle callbacks so that the image can survive orientation change
+
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         outState.putParcelable(BITMAP_STORAGE_KEY, mImageBitmap);
@@ -214,14 +206,6 @@ public class AddPlayground extends AppCompatActivity {
     protected void onRestoreInstanceState(Bundle savedInstanceState) {
         super.onRestoreInstanceState(savedInstanceState);
 
-
-
-
-        //mImageView.setScaleType(ImageView.ScaleType.CENTER);
-        // mImageView.setAdjustViewBounds(true);
-        //  mImageView.getLayoutParams().height = mImageBitmap.getHeight();//set appropriate sizes
-        // mImageView.getLayoutParams().width = LinearLayout.LayoutParams.MATCH_PARENT;//set appropriate sizes
-        // mImageView.requestLayout();
         mImageView.setImageBitmap(mImageBitmap);
 
     }
@@ -247,10 +231,33 @@ public class AddPlayground extends AppCompatActivity {
         }
     }
 
-        public void addNewPlayground (View view){
-            Playground playground = new Playground(42.0, 17.0,
-                    String.valueOf(playGroundName.getText()),
+    public void addNewPlayground (View view) throws FileNotFoundException {
+        try {
+            Playground playground = new Playground(
                     String.valueOf(playGroundComment.getText()),
-                    rate.getRating());
+                    "",
+                    locLat,
+                    locLong,
+                    String.valueOf(playGroundName.getText()),
+                    rate.getRating(),
+                    String.valueOf(getAlbumDir()) + "/" + imageFileName,
+                    this);
+
+            playground.addPlayGround(playground);
         }
+        catch (Exception e){
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+
+        Toast.makeText(this, "Dodano nowy plac zabaw", Toast.LENGTH_SHORT).show();
+        clearWriteText();
+    }
+
+
+    private void clearWriteText(){
+        playGroundName.getText().clear();
+        playGroundComment.getText().clear();
+        rate.setRating(0.0f);
+        mImageView.setImageResource(R.drawable.ic_menu_camera);
+    }
 }
