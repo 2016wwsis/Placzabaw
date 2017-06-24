@@ -1,15 +1,11 @@
 package com.tpanpm.wwsis.placzabaw;
 
 import android.Manifest;
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.database.DataSetObserver;
-import android.graphics.Color;
 import android.location.Address;
 import android.location.Criteria;
 import android.location.Geocoder;
@@ -18,24 +14,18 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.net.ConnectivityManager;
 import android.net.Uri;
-import android.net.sip.SipAudioCall;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.provider.Settings;
-import android.support.annotation.DrawableRes;
 import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
-import android.support.constraint.ConstraintLayout;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.KeyEvent;
-import android.view.MotionEvent;
 import android.view.View;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -45,30 +35,21 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.ViewGroup;
-import android.view.Window;
 import android.view.WindowManager;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
-import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.PopupMenu;
-import android.widget.RatingBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.view.inputmethod.InputMethodManager;
-import android.view.View.OnKeyListener;
 
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.Marker;
-import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnInfoWindowClickListener;
@@ -77,13 +58,19 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.zxing.integration.android.IntentIntegrator;
+import com.google.zxing.integration.android.IntentResult;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.Random;
 
 import static com.google.android.gms.maps.GoogleMap.*;
 
@@ -103,20 +90,21 @@ public class MainActivity extends AppCompatActivity
     Location loc = null;
     FloatingActionButton fab, fab_playground, fabMyLocation, fab_navigation;
     boolean isFabOpen;
-   // FirebaseDatabase database = FirebaseDatabase.getInstance();
-    Playground[] playgroundList = new Playground[10];
     InputMethodManager imm;
     EditText textSearch;
     ImageButton buttonSearch;
-    int testValue = 0;
     PopupMenu pp;
     ListView listOfLocation;
-    String markerPosition, playgroundPosition, positionForNavigate;
+    String positionForNavigate;
     RelativeLayout relativeLayout;
     Playground playground;
     static final int REQUEST_IMAGE_CAPTURE = 1;
     public final static String EXTRA_MESSAGE1 = "MESSAGE1";
     public final static String EXTRA_MESSAGE2 = "MESSAGE2";
+    public float rate;
+    public String markerId;
+    HashMap<String,Marker> hashMapMarker = new HashMap<>();
+    HashMap<String,Playground> hashMapPlayground = new HashMap<>();
 
     private void refreshLocationInfo() {
         kr = new Criteria();
@@ -143,50 +131,79 @@ public class MainActivity extends AppCompatActivity
         }
 
         if (mGoogleMap!=null){
-               MarkerOptions markers = new MarkerOptions()
-                .position(new LatLng(locLat,locLong))
-                .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_person_pin_circle_indigo_700_48dp));
-               mGoogleMap.addMarker(markers);}
+            MarkerOptions markers = new MarkerOptions()
+                    .position(new LatLng(locLat,locLong))
+                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_person_pin_circle_indigo_700_48dp));
 
+            Marker marker = mGoogleMap.addMarker(markers);
+            markerId = marker.getId();
+            hashMapMarker.put(markerId,marker);
+        }
     }
-
 
     private void getPlaygroundFromDatabase() {
 
-        //tu bedzie kod do czytania danych
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference myRef = database.getReference("playgrounds");
 
-        Random random = new Random();
-        float minX = 1.0f;
-        float maxX = 5.0f;
+        final ArrayList<Playground> playgroundArrayList = new ArrayList<>();
 
-        Random rand = new Random();
+        final ArrayAdapter arrayAdapter = new ArrayAdapter(this,  playgroundArrayList);
 
+        myRef.addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Playground playground = new Playground(dataSnapshot.getValue(Playground.class).getDESC(),
+                        dataSnapshot.getValue(Playground.class).getIMAGE(),
+                        dataSnapshot.getValue(Playground.class).getLAT(),
+                        dataSnapshot.getValue(Playground.class).getLON(),
+                        dataSnapshot.getValue(Playground.class).getNAME(),
+                        dataSnapshot.getValue(Playground.class).getRATE(),
+                        "",
+                        MainActivity.this
+                );
+                playgroundArrayList.add(playground);
+                for (Playground data:playgroundArrayList) {
+                    Playground playGround = new Playground(data.getDESC(), "", data.getLAT(),
+                            data.getLON(),
+                            data.getNAME(),
+                            data.getRATE(),
+                            "",
+                            MainActivity.this
+                    );
 
-        for (int i = 0; i < playgroundList.length; i++)
-            playgroundList[i] = new Playground();
-        StringBuilder sb = new StringBuilder("m");
+                    hashMapPlayground.put(String.valueOf(new LatLng(playGround.getLAT(), playGround.getLON())),
+                            playGround);
 
-        for (int i = 0; i <= 9; i++) {
-            playgroundList[i].name = "Plac " + i + " ";
-            playgroundList[i].description = "Plac zabaw Nivea w parku miejskim. Dużo ciekawych zabaw. Ogrodzony dużo koszy na smieci. Czysto i zadbanie. Polecam.";
-            playgroundList[i].rate = rand.nextFloat() * (maxX - minX) + minX;
-            playgroundList[i].playgroundLat = locLat + (random.nextDouble() / 100);
-            playgroundList[i].playgroundLong = locLong + (random.nextDouble() / 100);
-            playgroundList[i].markerId = sb.append(String.valueOf(i)).toString();
+                    addNewPlayground(new LatLng(data.getLAT(),
+                                    data.getLON()),
+                            data.getNAME(),
+                            data.getDESC(),
+                            data.getRATE());
+                }
+            }
 
-            addNewPlayground(new LatLng(playgroundList[i].playgroundLat,
-                            playgroundList[i].playgroundLong),
-                    playgroundList[i].name,
-                    playgroundList[i].description,
-                    playgroundList[i].rate,
-                    playgroundList[i].markerId);
-        }
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
 
-        // mGoogleMap.setInfoWindowAdapter(new MarkerAdapter(getLayoutInflater()));
-        //mGoogleMap.addMarker(new MarkerOptions().position(LOS_ANGELES).title("Los Angeles")).setSnippet("tets");
-        //mGoogleMap.addMarker(new MarkerOptions().position(SAN_FRANCISCO).title("San Francisco").snippet("test")
-        //       .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_half_orange_500_36dp)));
-        // mGoogleMap.animateCamera(CameraUpdateFactory.newLatLng(LOS_ANGELES));
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+
+        });
 
     }
 
@@ -199,7 +216,7 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-       textSearch = (EditText) findViewById(R.id.search_edit_text);
+        textSearch = (EditText) findViewById(R.id.search_edit_text);
         buttonSearch = (ImageButton) findViewById(R.id.search_button);
         listOfLocation = (ListView)findViewById(R.id.list_view);
         relativeLayout = (RelativeLayout) findViewById(R.id.rr);
@@ -227,43 +244,20 @@ public class MainActivity extends AppCompatActivity
                 goToCheckLocation(locationName);
                 hideKeyboard();
                 clearEditText();
-                                return true;
+                return true;
             }
         });
 
 
 
-         fab.setOnClickListener(new View.OnClickListener() {
+        fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
 
-                addNewPlayground(new LatLng(locLat, locLong),
-                        "Twój nowy plac zabaw",
-                        "A tu będzie krótki opis placu zabaw. dla przykładu co zawiera plac lub jakie są mankamenty",
-                        1.5f, "m99"); //
-
-                playground = new Playground(10.0, 35.0, "Name", "Desc", 5);
-                playground.addPlayGround(playground);
-              Intent intent = new Intent(MainActivity.this, AddPlayground.class);
-Double test = 4.5;
+                Intent intent = new Intent(MainActivity.this, AddPlayground.class);
                 intent.putExtra(EXTRA_MESSAGE2, locLong);
                 intent.putExtra(EXTRA_MESSAGE1, locLat);
-
-startActivity(intent);
-               /* if (isFabOpen) {
-
-                    fab_playground.startAnimation(fabClose);
-                    fab.startAnimation(fabAnticlockwise);
-                    fab_playground.setClickable(false);
-                    isFabOpen = false;
-
-                } else {
-                    fab_playground.startAnimation(fabOpen);
-                    fab.startAnimation(fabClockwise);
-                    fab_playground.setClickable(true);
-                    isFabOpen = true;
-                }*/
-
+                startActivity(intent);
 
             }
 
@@ -275,8 +269,17 @@ startActivity(intent);
         fabMyLocation.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                refreshLocationInfo();
-                goToLocationZoom(locLat, locLong, 15);
+                if(hashMapMarker.isEmpty()){
+                    refreshLocationInfo();
+                    goToLocationZoom(locLat, locLong, 15);
+                }else{
+                    Marker marker = hashMapMarker.get(markerId);
+                    marker.remove();
+                    hashMapMarker.remove(markerId);
+                    refreshLocationInfo();
+                    goToLocationZoom(locLat, locLong, 15);
+                }
+
             }
 
 
@@ -296,18 +299,11 @@ startActivity(intent);
 
         });
 
-        //final EditText textSearch = (EditText)findViewById(R.id.search_edit_text);
-        //final RelativeLayout relativeLayout = (RelativeLayout) findViewById(R.id.rr);
-       // relativeLayout.setBackgroundColor(Color.argb(150, 255, 255, 255));
-        //textSearch.setTextColor(Color.LTGRAY);
-
-
-       textSearch.setOnClickListener(new View.OnClickListener() {
+        textSearch.setOnClickListener(new View.OnClickListener() {
             @RequiresApi(api = Build.VERSION_CODES.N)
             @Override
             public void onClick(View view) {
                 textSearch.setCursorVisible(true);
-
             }
         });
 
@@ -339,10 +335,10 @@ startActivity(intent);
                 String value = s.toString();
                 if (value.length() > 0) {
                     buttonSearch.setBackgroundResource(R.drawable.ic_search_light_green_600_36dp);
-
-                }else{
+                }
+                else
+                {
                     buttonSearch.setBackgroundResource(R.drawable.ic_search_grey_500_36dp);
-
                 }
             }
 
@@ -352,31 +348,31 @@ startActivity(intent);
             }
         });
 
-            DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
-            ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
-                    this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
-            drawer.setDrawerListener(toggle);
-            toggle.syncState();
+        DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
+                this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        drawer.setDrawerListener(toggle);
+        toggle.syncState();
 
-            NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
-            navigationView.setNavigationItemSelectedListener(this);
+        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView.setNavigationItemSelectedListener(this);
 
-            checkNetworkAndLocation();
-            refreshLocationInfo();
+        checkNetworkAndLocation();
+        refreshLocationInfo();
 
-            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-                // TODO: Consider calling
-                //    ActivityCompat#requestPermissions
-                // here to request the missing permissions, and then overriding
-                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                //                                          int[] grantResults)
-                // to handle the case where the user grants the permission. See the documentation
-                // for ActivityCompat#requestPermissions for more details.
-                return;
-            }
-            lm.requestLocationUpdates(najlepszyDostawca, 1000, 1, this);
-
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
         }
+        lm.requestLocationUpdates(najlepszyDostawca, 1000, 1, this);
+
+    }
 
     private void goToCheckLocation(String locationName) {
         Toast.makeText(MainActivity.this, locationName, Toast.LENGTH_SHORT).show();
@@ -430,17 +426,16 @@ startActivity(intent);
         }
     }
 
-    private void addNewPlayground(LatLng latlang, String playgroundTitle, String playgroundDescription, float playgroundRate, String markerId) {
+    private void addNewPlayground(LatLng latlang, String playgroundTitle, String playgroundDescription, float playgroundRate) {
 
         MarkerAdapter markerAdapter = new MarkerAdapter(getLayoutInflater());
-        markerAdapter.setRate(playgroundRate);
-
         mGoogleMap.setInfoWindowAdapter(markerAdapter);
 
         MarkerOptions markers = new MarkerOptions()
                 .position(latlang)
-                .title(String.format(playgroundTitle))
+                .title(playgroundTitle)
                 .snippet(playgroundDescription);
+
 
         if (playgroundRate <= 1.5) {
             markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_border_red_600_36dp));
@@ -456,7 +451,9 @@ startActivity(intent);
             markers.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_star_border_red_600_36dp));
         }
 
+        // Marker marker =
         mGoogleMap.addMarker(markers);
+        // hashMapMarker.put(String.valueOf(marker.getPosition()),marker);
 
     }
 
@@ -464,9 +461,9 @@ startActivity(intent);
     private void buildAlertMessageNoNet() {
         final AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setMessage("Dostęp do sieci internet jest niemożliwy!" +
-                            "\nCzy chcesz przejść do ustawień sieciowych?\n " +
-                            "Brak dostępu do sieci internet uniemożliwia\n" +
-                            "korzystanie z podstawowych funkcji aplikacji.")
+                "\nCzy chcesz przejść do ustawień sieciowych?\n " +
+                "Brak dostępu do sieci internet uniemożliwia\n" +
+                "korzystanie z podstawowych funkcji aplikacji.")
                 .setCancelable(false)
                 .setPositiveButton("Tak", new DialogInterface.OnClickListener() {
                     public void onClick(@SuppressWarnings("unused") final DialogInterface dialog, @SuppressWarnings("unused") final int id) {
@@ -553,13 +550,22 @@ startActivity(intent);
     @SuppressWarnings("StatementWithEmptyBody")
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
-        // Handle navigation view item clicks here.
+
         int id = item.getItemId();
 
         if (id == R.id.nav_search) {
-            Toast.makeText(MainActivity.this ,"1", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(this, ListOfPlaygroundActivity.class);
+            startActivity(intent);
         } else if (id == R.id.nav_comments) {
-            Toast.makeText(MainActivity.this ,"2", Toast.LENGTH_SHORT).show();
+
+            IntentIntegrator integrator = new IntentIntegrator(this);
+            integrator.setDesiredBarcodeFormats(IntentIntegrator.ONE_D_CODE_TYPES);
+            integrator.setPrompt("Scan a barcode");
+            integrator.setCameraId(0);  // Use a specific camera of the device
+            integrator.setBeepEnabled(false);
+            integrator.setBarcodeImageEnabled(true);
+            integrator.initiateScan();
+
         } else if (id == R.id.nav_slideshow) {
             Toast.makeText(MainActivity.this ,"3", Toast.LENGTH_SHORT).show();
         } else if (id == R.id.nav_about) {
@@ -582,6 +588,23 @@ startActivity(intent);
         return true;
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        IntentResult result = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
+        if(result != null) {
+            if(result.getContents() == null) {
+                Toast.makeText(this, "Cancelled", Toast.LENGTH_LONG).show();
+            } else {
+                Toast.makeText(this, "Scanned: " + result.getContents(), Toast.LENGTH_LONG).show();
+            }
+        }
+        else
+        {
+            super.onActivityResult(requestCode, resultCode, data);
+        }
+    }
+
+
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
@@ -589,7 +612,7 @@ startActivity(intent);
         mGoogleMap = googleMap;
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-           return;
+            return;
         }
 
         mGoogleMap.getUiSettings().setMapToolbarEnabled(true);
@@ -627,7 +650,7 @@ startActivity(intent);
     @Override
     protected void onResume(){
         super.onResume();
-       refreshLocationInfo();
+        refreshLocationInfo();
     }
 
     @Override
@@ -640,9 +663,9 @@ startActivity(intent);
 
     @Override
     public void onLocationChanged(Location location) {
-            mGoogleMap.clear();
-            refreshLocationInfo();
-            getPlaygroundFromDatabase();
+        mGoogleMap.clear();
+        refreshLocationInfo();
+        getPlaygroundFromDatabase();
 
     }
 
@@ -677,7 +700,7 @@ startActivity(intent);
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     public void geoLocate(View view) throws IOException {
 
-       clearPopupListOfLocation();
+        clearPopupListOfLocation();
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             if(!Objects.equals(textSearch.getText().toString(), "")) {
@@ -687,17 +710,17 @@ startActivity(intent);
                 Geocoder gc = new Geocoder(this);
                 List<Address> list = gc.getFromLocationName(location, 20);
 
-                          if(list.size()==1){
-                           Address address = list.get(0);
-                           double lat = address.getLatitude();
-                           double lng = address.getLongitude();
-                           goToLocationZoom(lat, lng, 15);
-                           hideKeyboard();
-                           clearEditText();
-                         }
-                         else{
-                                      createPopupListOfLocation(list);
-                        }
+                if(list.size()==1){
+                    Address address = list.get(0);
+                    double lat = address.getLatitude();
+                    double lng = address.getLongitude();
+                    goToLocationZoom(lat, lng, 15);
+                    hideKeyboard();
+                    clearEditText();
+                }
+                else{
+                    createPopupListOfLocation(list);
+                }
             }
             else{
                 Toast.makeText(this, "Wpisz lokalizację", Toast.LENGTH_LONG).show();
@@ -711,11 +734,11 @@ startActivity(intent);
     }
 
     public void clearEditText(){
-         textSearch.setText("");
-         textSearch.clearFocus();
-         textSearch.setCursorVisible(false);
-         textSearch.setFocusable(false);
-         textSearch.setFocusableInTouchMode(true);
+        textSearch.setText("");
+        textSearch.clearFocus();
+        textSearch.setCursorVisible(false);
+        textSearch.setFocusable(false);
+        textSearch.setFocusableInTouchMode(true);
     }
 
     public void createPopupListOfLocation(List<Address> list){
@@ -727,78 +750,45 @@ startActivity(intent);
         pp.show();
     }
 
-    public void createListViewOfLocation(List<Address> list){
-
-        // for(int i=0; i<list.size(); i++) {
-          //  listOfLocation.setAdapter();
-                  //  (String.valueOf(list.get(i).getAddressLine(0))+", "+
-                 //   String.valueOf(list.get(i).getAdminArea()));
-       // }
-        pp.getMenuInflater().inflate(R.menu.tip_menu, pp.getMenu());
-        pp.show();
-    }
-
     private void clearPopupListOfLocation() {
         if(pp.getMenu().size()>0){
             pp.getMenu().clear();
         }
     }
 
-    public void hideNavigationDrawer() {
-        DrawerLayout mDrawerLayout;
-        mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerLayout.closeDrawers();
-    }
-
-    public void fabAnimation(FloatingActionButton fab_type){
-        if (isFabOpen) {
-
-            fab_type.startAnimation(fabClose);
-            fab.startAnimation(fabAnticlockwise);
-            isFabOpen = false;
-
-        } else {
-            fab_type.startAnimation(fabOpen);
-            fab.startAnimation(fabClockwise);
-
-            isFabOpen = true;
-        }
-    }
 
     @RequiresApi(api = Build.VERSION_CODES.KITKAT)
     @Override
     public boolean onMarkerClick(Marker marker){
 
-        fabAnimation(fab_navigation);
-
-        MarkerAdapter markerAdapter = new MarkerAdapter(getLayoutInflater());
-        markerPosition = String.valueOf(marker.getPosition());
-        positionForNavigate = String.valueOf(marker.getPosition().latitude)+","+String.valueOf(marker.getPosition().longitude);
-
-        for(int i=0;i<10;i++){
-            playgroundPosition = String.valueOf(new LatLng(playgroundList[i].playgroundLat, playgroundList[i].playgroundLong));
-            if(Objects.equals(markerPosition, playgroundPosition)){
-                           markerAdapter.setRate(playgroundList[i].rate);
+        if(Objects.equals(String.valueOf(marker.getId()), markerId)){
+            if(marker.isInfoWindowShown()) {
+                marker.hideInfoWindow();
             }
+            return true;
         }
 
+        positionForNavigate = String.valueOf(marker.getPosition().latitude)+","+String.valueOf(marker.getPosition().longitude);
+        rate = hashMapPlayground.get(String.valueOf(marker.getPosition())).getRATE();
+        final MarkerAdapter markerAdapter = new MarkerAdapter(getLayoutInflater());
+        markerAdapter.setRate(rate);
+
         CameraPosition cameraPosition = new CameraPosition.Builder()
-                .target(marker.getPosition()).zoom(15).build();
+                .target(marker.getPosition()).zoom(20).build();
         mGoogleMap.animateCamera(CameraUpdateFactory
                 .newCameraPosition(cameraPosition));
 
         mGoogleMap.setInfoWindowAdapter(markerAdapter);
-
         marker.showInfoWindow();
-        //fab_navigation.setVisibility(View.VISIBLE);
-
         return true;
     }
 
 
     @Override
     public void onInfoWindowClick(Marker marker) {
-        Toast.makeText(this, "This is on click method", Toast.LENGTH_SHORT).show();
+        Intent intent = new Intent(this, InfoPlaygroundActivity.class);
+        startActivity(intent);
+        Toast.makeText(this, "This is on click method"+"\n"+String.valueOf(marker.getPosition().latitude)+"\n"+String.valueOf(marker.getPosition().longitude), Toast.LENGTH_LONG).show();
     }
 
 
@@ -810,12 +800,8 @@ startActivity(intent);
 
     @Override
     public void onInfoWindowClose(Marker marker) {
-        fabAnimation(fab_navigation);
+
     }
 
-    public void add_Playground(View view) {
-        Intent intent = new Intent(this, AddPlayground.class);
-        startActivity(intent);
-    }
 }
 

@@ -37,7 +37,9 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyD7kQY9OAT_JvJIjLf9yd7f9Q9gIQek2QA" />
 
-        <activity android:name=".AddPlayground"></activity>
+        <activity android:name=".AddPlayground" />
+        <activity android:name=".ListOfPlaygroundActivity" />
+        <activity android:name=".InfoPlaygroundActivity"></activity>
     </application>
 
 </manifest>
