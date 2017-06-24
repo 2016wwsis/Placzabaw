@@ -787,8 +787,11 @@ public class MainActivity extends AppCompatActivity
     @Override
     public void onInfoWindowClick(Marker marker) {
         Intent intent = new Intent(this, InfoPlaygroundActivity.class);
+        intent.putExtra(EXTRA_MESSAGE1, marker.getPosition().latitude);
+        intent.putExtra(EXTRA_MESSAGE2, marker.getPosition().longitude);
         startActivity(intent);
-        Toast.makeText(this, "This is on click method"+"\n"+String.valueOf(marker.getPosition().latitude)+"\n"+String.valueOf(marker.getPosition().longitude), Toast.LENGTH_LONG).show();
+
+        // Toast.makeText(this, "This is on click method"+"\n"+String.valueOf(marker.getPosition().latitude)+"\n"+String.valueOf(marker.getPosition().longitude), Toast.LENGTH_LONG).show();
     }
 
 

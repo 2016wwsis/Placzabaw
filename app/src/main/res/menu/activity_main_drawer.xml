@@ -9,23 +9,26 @@
         <item
             android:id="@+id/nav_search"
             android:icon="@drawable/ic_search_black_48dp"
-            android:title="@string/wyszukaj"
+            android:title="Lista placów"
             android:checkable="false"/>
         <item
             android:id="@+id/nav_comments"
             android:icon="@drawable/ic_insert_comment_black_48dp"
             android:title="@string/dodaj_komentarz"
-            android:checkable="false"/>
+            android:checkable="false"
+            android:visible="false" />
         <item
             android:id="@+id/nav_slideshow"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/edytuj"
-            android:checkable="false"/>
+            android:checkable="false"
+            android:visible="false" />
         <item
             android:id="@+id/nav_photo"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="Dodaj zdjęcie"
-            android:checkable="false"/>
+            android:checkable="false"
+            android:visible="false" />
     </group>
     <group android:checkableBehavior="single"
         android:id="@+id/group_two">
